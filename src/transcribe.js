@@ -72,6 +72,7 @@ export async function transcribeAudio(audioPath) {
         // Als het multimodal model niet werkt, probeer Whisper-compatibele endpoint
         if (error.status === 400 || error.status === 422) {
             console.log('⚠️ Multimodal model ondersteunt dit formaat niet, probeer alternatieve methode...');
+            console.log('   Oorspronkelijke fout:', JSON.stringify(error.error || error.message || error));
             return await transcribeWithWhisperEndpoint(audioPath);
         }
         throw error;

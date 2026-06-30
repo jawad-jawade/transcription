@@ -91,12 +91,17 @@ bot.on('message:document', async (ctx) => {
   const mimeType = ctx.message.document?.mime_type || '';
   const fileName = ctx.message.document?.file_name || '';
   const ext = fileName.split('.').pop()?.toLowerCase() || '';
-  const audioExtensions = ['mp3', 'mp4', 'm4a', 'wav', 'ogg', 'oga', 'webm', 'flac', 'aac', 'wma'];
+  const audioExtensions = [
+    'mp3', 'mp4', 'm4a', 'wav', 'ogg', 'oga', 'webm', 'flac', 'aac', 'wma',
+    'amr', 'opus', '3gp', '3g2', 'caf', 'aiff', 'aif', 'alac', 'ac3', 'dts',
+    'mka', 'ape', 'wv', 'awb', 'gsm', 'au', 'mov', 'avi', 'mkv',
+  ];
 
   if (
     mimeType.startsWith('audio/') ||
     mimeType.startsWith('video/') ||
     mimeType === 'application/octet-stream' ||
+    mimeType === 'application/ogg' ||
     audioExtensions.includes(ext)
   ) {
     await handleAudio(ctx, 'document');
