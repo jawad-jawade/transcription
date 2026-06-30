@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Environment variables (bevatten API keys — nooit in git!)
+.env
+
+# Projectdata (audio + transcripties van gesprekken — lokale opslag)
+projects/
+
+# Audio- en videobestanden
+*.mp3
+*.mp4
+*.ogg
+*.wav
+*.m4a
+*.webm
+*.flac
+*.aac
+*.wma
+*.mov
+*.avi
+*.mkv
+
+# OS bestanden
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/

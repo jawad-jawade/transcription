@@ -1,0 +1,20 @@
+{
+  "name": "gesprek-mailsamenvatting",
+  "version": "1.0.0",
+  "description": "Telegram bot: audio transcriberen, samenvatten & mailen",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "grammy": "^1.35.0",
+    "openai": "^4.82.0",
+    "resend": "^4.1.2"
+  }
+}
