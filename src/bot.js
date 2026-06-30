@@ -15,6 +15,10 @@ import os from 'os';
  */
 const pendingSessions = new Map();
 
+// Praktische bovengrens voor het transcriptiemodel — grotere bestanden falen
+// onbetrouwbaar (timeouts) bij de AI-provider, ook al staat de download dat toe.
+const MAX_AUDIO_SIZE_BYTES = 25 * 1024 * 1024;
+
 /**
  * Wordt aangeroepen wanneer een gebruiker een audio stuurt.
  * Downloadt de audio en vraagt daarna om naam + e-mail.
@@ -35,12 +39,31 @@ export async function handleAudio(ctx, type) {
         const ext = path.extname(file.file_path || '') || '.ogg';
         const tempFile = path.join(tempDir, `audio${ext}`);
 
-        const fileUrl = `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${file.file_path}`;
-        const response = await fetch(fileUrl);
-        const buffer = Buffer.from(await response.arrayBuffer());
-        await fs.writeFile(tempFile, buffer);
+        if (path.isAbsolute(file.file_path)) {
+            // Lokale Bot API server: file_path is al een pad op schijf, geen download nodig.
+            // Het pad verwijst naar de container-mount; vertaal naar het pad op de host.
+            const containerDir = process.env.TELEGRAM_LOCAL_API_CONTAINER_DIR || '/var/lib/telegram-bot-api';
+            const hostDir = process.env.TELEGRAM_LOCAL_API_HOST_DIR;
+            const sourcePath = hostDir ? file.file_path.replace(containerDir, hostDir) : file.file_path;
+            await fs.copyFile(sourcePath, tempFile);
+        } else {
+            const fileUrl = `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${file.file_path}`;
+            const response = await fetch(fileUrl);
+            const buffer = Buffer.from(await response.arrayBuffer());
+            await fs.writeFile(tempFile, buffer);
+        }
 
-        console.log(`📥 Audio ontvangen van ${ctx.from?.first_name}: ${(buffer.length / 1024 / 1024).toFixed(2)} MB`);
+        const { size } = await fs.stat(tempFile);
+        console.log(`📥 Audio ontvangen van ${ctx.from?.first_name}: ${(size / 1024 / 1024).toFixed(2)} MB`);
+
+        if (size > MAX_AUDIO_SIZE_BYTES) {
+            await fs.rm(tempDir, { recursive: true, force: true }).catch(() => { });
+            await ctx.reply(
+                `⚠️ Dit bestand is ${(size / 1024 / 1024).toFixed(1)}MB, dat is te groot voor betrouwbare transcriptie.\n\n` +
+                `Comprimeer de opname (bijv. lagere bitrate mp3) of knip 'm in, tot maximaal ~25MB, en stuur opnieuw.`
+            );
+            return;
+        }
 
         // Sla sessie op en vraag om naam
         pendingSessions.set(userId, {

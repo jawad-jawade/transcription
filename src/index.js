@@ -25,7 +25,14 @@ const allowedUserIds = (process.env.ALLOWED_USER_IDS || '')
   .filter(Boolean);
 
 // ─── Bot initialisatie ──────────────────────────────────────────────
-const bot = new Bot(process.env.TELEGRAM_BOT_TOKEN);
+// TELEGRAM_LOCAL_API_URL: optioneel, wijst naar een zelf-gehoste Bot API server
+// (https://github.com/tdlib/telegram-bot-api) zodat bestanden tot 2GB i.p.v. 20MB werken.
+const bot = new Bot(
+  process.env.TELEGRAM_BOT_TOKEN,
+  process.env.TELEGRAM_LOCAL_API_URL
+    ? { client: { apiRoot: process.env.TELEGRAM_LOCAL_API_URL } }
+    : undefined
+);
 
 // Middleware: whitelist check
 bot.use(async (ctx, next) => {
